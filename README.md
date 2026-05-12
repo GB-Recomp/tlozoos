@@ -18,6 +18,17 @@ cmake --build . -j$(nproc)
 Produces a `tlozoos` executable (~560 KB with the default MinSizeRel +
 dead-strip profile).
 
+## Required ROM
+
+This build is locked to a single revision:
+
+| Region | Filename in the wild | MD5 |
+|--------|----------------------|-----|
+| USA / Australia | Legend of Zelda, The - Oracle of Seasons (USA, Australia).gbc | `f2dc6c4e093e4f8c6cbea80e8dbd62cb` |
+
+The asset loader verifies the SHA-1 on first launch and refuses to run
+on any other dump.
+
 ## Run
 
 Drop your Oracle of Seasons ROM next to the executable as `roms/tlozoos.gbc`:
