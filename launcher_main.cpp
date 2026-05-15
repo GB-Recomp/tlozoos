@@ -2,6 +2,7 @@
 #define SDL_MAIN_HANDLED
 extern "C" {
 #include "tlozoos.h"
+#include "gb_sha256.h"
 }
 
 #include <SDL.h>
@@ -20,14 +21,23 @@ typedef struct {
     const char* title;
     const char* rom_path;
     GBLauncherMainFn main_fn;
+    /* Lowercase 64-char SHA-256 of the ROM revision the static
+     * recompilation was built against. NULL skips the check. */
+    const char* expected_sha256;
 } GBLauncherGame;
 
 static int launch_tlozoos(int argc, char* argv[]) {
     return tlozoos_main(argc, argv);
 }
 
+/* SHA-256 of the canonical tlozoos.gbc the static
+ * recompilation was built against. */
+static const char TLOZOOS_EXPECTED_SHA256[] =
+    "862a51368fb30539279d336b3fe193b43876d2cb15c87a36f5da517804ab3971";
+
 static GBLauncherGame g_games[] = {
-    {"tlozoos", "The Legend of Zelda: Oracle of Seasons", "roms/tlozoos.gbc", launch_tlozoos},
+    {"tlozoos", "The Legend of Zelda: Oracle of Seasons", "roms/tlozoos.gbc", launch_tlozoos,
+     TLOZOOS_EXPECTED_SHA256},
 };
 
 static const char* g_launcher_name = "tlozoos";
@@ -62,6 +72,11 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     gb_platform_set_launcher_return_enabled(false);
+    if (g_games[0].expected_sha256 && g_games[0].rom_path) {
+        gb_sha256_verify_file(g_games[0].rom_path,
+                              g_games[0].expected_sha256,
+                              g_games[0].rom_path);
+    }
     for (;;) {
         fprintf(stderr, "[LAUNCH] Starting %s [%s]\n", g_games[0].title, g_games[0].id);
         int rc = g_games[0].main_fn(argc, argv);
